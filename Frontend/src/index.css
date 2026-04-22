@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease forwards;
+}
