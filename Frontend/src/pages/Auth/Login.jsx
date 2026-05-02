@@ -2,10 +2,28 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from "lucide-react";
 
-// Import background image (you'll need to add this to your project)
-// Or use a placeholder/online image
-import logo from "../../assets/image.jpg";
+const redirectPaths = {
+  citizen: "/citizen",
+  ngo: "/ngo",
+  government: "/govt",
+  admin: "/admin/dashboard",
+};
+
+const resolveRedirectPath = (role) => {
+  const normalizedRole = role === "govt" ? "government" : role;
+  return redirectPaths[normalizedRole] || "/";
+};
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -23,13 +41,7 @@ useEffect(() => {
 
   if (token && user) {
 
-    const redirectPaths = {
-      citizen: "/citizen",
-      ngo: "/ngo",
-      govt: "/govt",
-    };
-
-    navigate(redirectPaths[user.role] || "/");
+    navigate(resolveRedirectPath(user.role));
   }
 }, [navigate]);
 
@@ -47,13 +59,7 @@ useEffect(() => {
       const data = await loginUser({ email, password });
       login(data.user, data.token, rememberMe);
 
-      const redirectPaths = {
-        "citizen": "/citizen",
-        "ngo": "/ngo",
-        "govt": "/govt",
-      };
-
-      navigate(redirectPaths[data.user.role] || "/");
+      navigate(resolveRedirectPath(data.user.role));
 
     } catch (err) {
       const errorMessage =
@@ -67,238 +73,232 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 p-4">
-      {/* Background Image */}
-      <div className="fixed inset-0 z-0">
-        <img
-          src={logo}
-          alt="Disaster Relief Team"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black opacity-40"></div>
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-slate-50 text-slate-900">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.12),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.08),_transparent_26%)]" />
 
-      <div className="relative z-10 w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <div className="flex flex-col lg:flex-row min-h-[600px]">
-          {/* Left Side - Information */}
-          <div className="lg:w-1/2 bg-gradient-to-br from-blue-900 to-blue-700 text-white p-8 lg:p-12">
-            <div className="h-full flex flex-col justify-center">
-              <div className="flex items-center space-x-3 mb-8">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <span className="text-2xl">🛡️</span>
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid w-full overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.10)] lg:grid-cols-[1.05fr_0.95fr]">
+          <aside className="relative hidden overflow-hidden border-b border-slate-200 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-8 lg:flex lg:min-h-[760px] lg:border-b-0 lg:border-r">
+            <div className="absolute -left-16 top-10 h-48 w-48 rounded-full bg-sky-400/10 blur-3xl" />
+            <div className="absolute bottom-0 right-0 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl" />
+
+            <div className="relative flex h-full flex-col justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold tracking-[0.18em] text-slate-600 uppercase shadow-sm">
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-600" />
+                  ReliefConnect
                 </div>
-                <h1 className="text-3xl font-bold">ReliefConnect</h1>
+                <h1 className="mt-6 max-w-xl text-4xl font-semibold tracking-tight text-slate-900 xl:text-5xl">
+                  A cleaner way to access disaster response tools.
+                </h1>
+                <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">
+                  One sign-in for citizens, NGOs, and government teams, designed with clarity and calm in mind.
+                </p>
+
+                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                  <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <ShieldCheck className="h-5 w-5 text-cyan-600" />
+                    <h3 className="mt-3 text-sm font-semibold text-slate-900">Secure access</h3>
+                    <p className="mt-1 text-sm text-slate-600">Role-based entry for every dashboard.</p>
+                  </article>
+                  <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <Users className="h-5 w-5 text-emerald-600" />
+                    <h3 className="mt-3 text-sm font-semibold text-slate-900">Faster routing</h3>
+                    <p className="mt-1 text-sm text-slate-600">Users land on the right workspace instantly.</p>
+                  </article>
+                </div>
               </div>
 
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-                Disaster Management & Relief System
-              </h2>
-
-              <p className="text-lg text-blue-100 mb-10">
-                A unified platform for emergency responders, NGOs, and government agencies
-                to coordinate disaster relief efforts efficiently and save lives.
-              </p>
-
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <span className="text-xl">🚨</span>
+              <div className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-cyan-50 p-2 text-cyan-700">
+                    <Mail className="h-4 w-4" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Real-time Emergency Alerts</h3>
-                    <p className="text-blue-100">Instant notifications for critical situations</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <span className="text-xl">🤝</span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">Resource Coordination</h3>
-                    <p className="text-blue-100">Efficient allocation of aid and volunteers</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <span className="text-xl">📊</span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">Impact Analytics</h3>
-                    <p className="text-blue-100">Data-driven insights for better decisions</p>
+                    <p className="text-sm font-medium text-slate-900">Simple entry, cleaner handoff</p>
+                    <p className="mt-1 text-sm text-slate-600">The account role decides where you go next.</p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
 
-          {/* Right Side - Login Form */}
-          <div className="lg:w-1/2 p-8 lg:p-12">
-            <div className="max-w-md mx-auto">
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-800">Welcome Back</h2>
-                <p className="text-gray-600 mt-2">
-                  Login to continue helping people in need
+          <section className="bg-white px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
+            <div className="mb-6 flex items-center justify-between gap-4 lg:hidden">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold tracking-[0.18em] text-slate-600 uppercase shadow-sm">
+                <Sparkles className="h-3.5 w-3.5 text-cyan-600" />
+                ReliefConnect
+              </div>
+              <Link
+                to="/"
+                aria-label="Home"
+                className="inline-flex items-center gap-2 rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-cyan-700"
+              >
+                Home
+              </Link>
+            </div>
+
+            <div className="mx-auto flex h-full w-full max-w-md flex-col justify-center">
+              <div className="mb-8 lg:hidden">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold tracking-[0.18em] text-slate-600 uppercase shadow-sm">
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-600" />
+                  ReliefConnect
+                </div>
+                <h1 className="mt-5 text-3xl font-semibold tracking-tight text-slate-900">
+                  Sign in to your workspace
+                </h1>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Access your citizen, NGO, or government dashboard from one secure place.
                 </p>
               </div>
 
-              {/* Error Message */}
+              <div className="hidden lg:block mb-8">
+                <h2 className="text-3xl font-semibold tracking-tight text-slate-900">Welcome back</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Sign in to continue coordinating relief work.
+                </p>
+              </div>
+
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                  <div className="flex items-center">
-                    <span className="text-red-500 mr-2">⚠️</span>
-                    <p className="text-red-700 font-medium">{error}</p>
+                <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-100 text-[11px] font-bold text-rose-600">
+                      !
+                    </span>
+                    <p className="font-medium leading-6">{error}</p>
                   </div>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Field */}
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    <span className="inline-block mr-2">📧</span>
-                    <b>Email Address</b>
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition-all bg-white text-black hover:border-sky-400 placeholder:text-gray-500"
-                  />
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <label className="block text-sm font-medium text-black mb-2">
-                    <span className="inline-block mr-2">🔒</span>
-                    <b>Password</b>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Email Address
                   </label>
                   <div className="relative">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@example.com"
+                      required
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition-all bg-white text-black hover:border-sky-400 placeholder:text-gray-500 pr-12"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-12 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 placeholder:text-slate-400"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-black hover:text-sky-600 p-1 hover:bg-sky-50 rounded-lg transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? "👁️" : "🙈"}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                {/* Options */}
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center space-x-2 cursor-pointer">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <label className="flex items-center gap-2 text-sm text-slate-600">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 text-sky-600 rounded focus:ring-sky-500 border-gray-300"
+                      className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
                     />
-                    <span className="text-gray-700">Remember me</span>
+                    Remember me
                   </label>
-                  <Link 
-                    to="/forgot-password" 
-                    className="text-sky-600 hover:text-sky-800 font-medium hover:underline"
+
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm font-semibold text-cyan-700 transition hover:text-cyan-900"
                   >
-                    Forgot Password?
+                    Forgot password?
                   </Link>
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-sky-500 to-sky-600 text-white py-3 rounded-xl font-semibold hover:from-sky-600 hover:to-sky-700 focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       Authenticating...
-                    </div>
+                    </>
                   ) : (
-                    "Login to Dashboard"
+                    <>
+                      Sign in
+                      <ArrowRight className="h-4 w-4" />
+                    </>
                   )}
                 </button>
 
-                {/* Divider */}
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-500">Or</span>
-                  </div>
+                <div className="flex items-center gap-4 py-2">
+                  <div className="h-px flex-1 bg-slate-200" />
+                  <span className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">or</span>
+                  <div className="h-px flex-1 bg-slate-200" />
                 </div>
 
-                {/* Signup Link */}
-                <div className="text-center">
-                  <span className="text-gray-600">
-                    New to ReliefConnect?
-                  </span>
-                  <Link 
-                    to="/register" 
-                    className="ml-2 text-blue-600 hover:text-blue-800 font-semibold"
-                  >
-                    Create an Account
-                  </Link>
-                </div>
-              </form>
-
-              {/* Demo Credentials */}
-              <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50/90 p-5 sm:p-6">
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl border border-slate-300 bg-white flex items-center justify-center">
-                      <span className="text-slate-700">🔐</span>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-xl bg-cyan-50 p-2 text-cyan-700">
+                      <ShieldCheck className="h-4 w-4" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-800">Demo Credentials</h3>
-                      <p className="text-xs text-slate-500">Use these test accounts to log in quickly</p>
+                      <p className="text-sm font-semibold text-slate-800">New here?</p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Create your account to report incidents or manage relief operations.
+                      </p>
+                      <Link
+                        to="/register"
+                        className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 transition hover:text-cyan-900"
+                      >
+                        Create an account
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
                     </div>
                   </div>
-                  <span className="hidden sm:inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-                    Test Only
-                  </span>
                 </div>
 
-                <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
-                  <article className="rounded-xl border border-cyan-200 bg-white p-4 shadow-sm">
-                    <p className="mb-2 inline-flex rounded-full bg-cyan-50 px-2 py-1 text-xs font-semibold text-cyan-700">Citizen</p>
-                    <p className="text-xs text-slate-500">Email</p>
-                    <p className="font-mono text-[13px] text-slate-700 break-all">danish543@gmail.com</p>
-                    <p className="mt-2 text-xs text-slate-500">Password</p>
-                    <p className="font-mono text-[13px] text-slate-700">danish8090</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Citizen</p>
+                    <p className="mt-2 text-xs text-slate-500">danish543@gmail.com</p>
+                    <p className="mt-1 text-sm font-medium text-slate-800">danish8090</p>
                   </article>
 
-                  <article className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
-                    <p className="mb-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">NGO Staff</p>
-                    <p className="text-xs text-slate-500">Email</p>
-                    <p className="font-mono text-[13px] text-slate-700 break-all">contact@helpinghands.org</p>
-                    <p className="mt-2 text-xs text-slate-500">Password</p>
-                    <p className="font-mono text-[13px] text-slate-700">Helping8090</p>
+                  <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">NGO</p>
+                    <p className="mt-2 text-xs text-slate-500">contact@helpinghands.org</p>
+                    <p className="mt-1 text-sm font-medium text-slate-800">Helping8090</p>
                   </article>
 
-                  <article className="rounded-xl border border-violet-200 bg-white p-4 shadow-sm">
-                    <p className="mb-2 inline-flex rounded-full bg-violet-50 px-2 py-1 text-xs font-semibold text-violet-700">Government</p>
-                    <p className="text-xs text-slate-500">Email</p>
-                    <p className="font-mono text-[13px] text-slate-700 break-all">govt@demo.com</p>
-                    <p className="mt-2 text-xs text-slate-500">Password</p>
-                    <p className="font-mono text-[13px] text-slate-700">demo123</p>
+                  <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-700">Government</p>
+                    <p className="mt-2 text-xs text-slate-500">govt@demo.com</p>
+                    <p className="mt-1 text-sm font-medium text-slate-800">demo123</p>
                   </article>
                 </div>
-              </div>
+              </form>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>

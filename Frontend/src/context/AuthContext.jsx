@@ -24,6 +24,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", jwtToken);
   };
 
+  // Update user fields (used after profile updates)
+  const updateUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
   // Logout function jo user data aur token ko clear karne ke liya banaya hai
   const logout = () => {
     setUser(null);
@@ -60,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
   }, [token]);
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

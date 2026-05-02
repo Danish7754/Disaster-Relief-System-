@@ -7,6 +7,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const ngoRoutes = require("./routes/ngoRoutes");
 const govtRoutes = require("./routes/govtRoutes");
 const userRoutes = require("./routes/userRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -43,6 +44,9 @@ app.use("/api/govt", govtRoutes);
 
 // User routes
 app.use("/api/users", userRoutes);
+
+// Admin routes
+app.use("/api/admin", adminRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

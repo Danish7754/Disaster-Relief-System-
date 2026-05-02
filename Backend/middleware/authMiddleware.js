@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 // Auth middleware to protect routes
-const AuthMiddleware = (req, res, next) => {
+const protect = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');// Bearer token format me hona chahiye
   if (!token) {
     return res.status(401).json({ message: 'No token, authorization denied' }); // Token verify karna
@@ -19,4 +19,18 @@ const AuthMiddleware = (req, res, next) => {
 
 };
 
-module.exports = AuthMiddleware;
+const isAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Not authorized, no user context' });
+  }
+
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied: admin only' });
+  }
+
+  next();
+};
+
+module.exports = protect;
+module.exports.protect = protect;
+module.exports.isAdmin = isAdmin;

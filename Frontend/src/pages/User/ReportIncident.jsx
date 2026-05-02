@@ -1,7 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createReport } from "../../services/reportService";
 import { useAuth } from "../../context/AuthContext";
+
+const stateOptions = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
+];
 
 export default function ReportIncident() {
   const { user, token } = useAuth();
@@ -14,9 +21,16 @@ export default function ReportIncident() {
     title: "",
     category: "",
     location: "",
+    state: user?.state || "",
     urgency: "medium",
     description: "",
   });
+
+  useEffect(() => {
+    if (user?.state) {
+      setFormData((prev) => (prev.state ? prev : { ...prev, state: user.state }));
+    }
+  }, [user?.state]);
 
   const handleChange = (e) => {
     setFormData({
@@ -111,6 +125,22 @@ export default function ReportIncident() {
                   <option value="earthquake">Earthquake</option>
                   <option value="medical">Medical Emergency</option>
                   <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">State</label>
+                <select
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:border-cyan-400 bg-white"
+                  required
+                >
+                  <option value="">Select state</option>
+                  {stateOptions.map((state) => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
                 </select>
               </div>
 

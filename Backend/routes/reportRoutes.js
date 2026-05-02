@@ -9,6 +9,7 @@ const {
 	getAllReportsAuthorities,
 	getNgoAssignedReports,
 	acceptNgoAssignedReport,
+	rejectNgoAssignedReport,
 	completeNgoAssignedReport,
 } = require('../controllers/reportController');
 const authenticate = require('../middleware/authMiddleware');
@@ -23,6 +24,7 @@ router.get('/all', getAllReportsAuthorities);
 // NGO specific workflow routes
 router.get('/ngo/assigned', getNgoAssignedReports);
 router.patch('/ngo/:id/accept', acceptNgoAssignedReport);
+router.patch('/ngo/:id/reject', rejectNgoAssignedReport);
 router.patch('/ngo/:id/complete', completeNgoAssignedReport);
 
 router.get('/my-reports', getMyReports);

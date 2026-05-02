@@ -3,6 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { createReport, getMyReports } from "../../services/reportService";
 
+const stateOptions = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
+];
+
 export default function CitizenDashboard() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -18,8 +25,15 @@ export default function CitizenDashboard() {
     description: "",
     category: "",
     location: "",
+    state: user?.state || "",
     urgency: "medium",
   });
+
+  useEffect(() => {
+    if (user?.state) {
+      setReportData((prev) => (prev.state ? prev : { ...prev, state: user.state }));
+    }
+  }, [user?.state]);
 
   const fetchReports = async () => {
     try {
@@ -86,6 +100,7 @@ export default function CitizenDashboard() {
         description: "",
         category: "",
         location: "",
+        state: user?.state || "",
         urgency: "medium",
       });
       setShowModal(false);
@@ -287,12 +302,31 @@ export default function CitizenDashboard() {
                   >
                     <option value="">Select category</option>
                     <option value="flood">Flood</option>
+                    <option value="food">Food</option>
                     <option value="fire">Fire</option>
                     <option value="earthquake">Earthquake</option>
                     <option value="medical">Medical Emergency</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">State</label>
+                <select
+                  name="state"
+                  value={reportData.state}
+                  onChange={handleReportChange}
+                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:border-cyan-400 bg-white"
+                  required
+                >
+                  <option value="">Select state</option>
+                  {stateOptions.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Urgency</label>

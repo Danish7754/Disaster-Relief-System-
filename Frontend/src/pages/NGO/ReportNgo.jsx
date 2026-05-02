@@ -3,6 +3,7 @@ import {
   acceptNgoReport,
   completeNgoReport,
   getNgoAssignedReports,
+  rejectNgoReport,
 } from "../../services/reportService";
 import { useAuth } from "../../context/AuthContext";
 
@@ -15,7 +16,11 @@ export default function ReportNgo() {
   const [actionLoadingId, setActionLoadingId] = useState("");
 
   const fetchAssignedReports = async () => {
-    if (!token) return;
+    if (!token) {
+      setReports([]);
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -34,7 +39,7 @@ export default function ReportNgo() {
     fetchAssignedReports();
   }, [token]);
 
-  const stats = useMemo(() => {
+  const stats = useMemo(() => { 
     const pending = reports.filter((report) => report.status === "pending").length;
     const inProgress = reports.filter((report) => report.status === "in-progress").length;
     const resolved = reports.filter((report) => report.status === "resolved").length;
@@ -74,6 +79,18 @@ export default function ReportNgo() {
       await fetchAssignedReports();
     } catch (err) {
       setError(err.response?.data?.message || "Unable to accept this report.");
+    } finally {
+      setActionLoadingId("");
+    }
+  };
+
+  const handleReject = async (reportId) => {
+    setActionLoadingId(reportId);
+    try {
+      await rejectNgoReport(reportId, token);
+      await fetchAssignedReports();
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to reject this report.");
     } finally {
       setActionLoadingId("");
     }
@@ -141,6 +158,12 @@ export default function ReportNgo() {
           <div className="divide-y divide-slate-100">
             {reports.map((report) => {
               const isBusy = actionLoadingId === report._id;
+              const statusLabel =
+                report.status === "resolved"
+                  ? "Resolved"
+                  : report.status === "in-progress"
+                    ? "In Progress"
+                    : "Pending";
               return (
                 <article key={report._id} className="px-5 sm:px-6 py-4 hover:bg-slate-50 transition-colors">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -159,17 +182,27 @@ export default function ReportNgo() {
                         {report.priority || "medium"}
                       </span>
                       <span className={`px-2.5 py-1 text-xs border rounded-full font-semibold ${getStatusBadge(report.status)}`}>
-                        {report.status}
+                        {statusLabel}
                       </span>
 
                       {report.status === "pending" && (
-                        <button
-                          onClick={() => handleAccept(report._id)}
-                          disabled={isBusy}
-                          className="rounded-lg bg-sky-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                          {isBusy ? "Please wait..." : "Accept"}
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleAccept(report._id)}
+                            disabled={isBusy}
+                            className="rounded-lg bg-sky-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {isBusy ? "Please wait..." : "Accept"}
+                          </button>
+
+                          <button
+                            onClick={() => handleReject(report._id)}
+                            disabled={isBusy}
+                            className="rounded-lg bg-rose-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {isBusy ? "Please wait..." : "Reject"}
+                          </button>
+                        </>
                       )}
 
                       {report.status === "in-progress" && (
@@ -178,7 +211,7 @@ export default function ReportNgo() {
                           disabled={isBusy}
                           className="rounded-lg bg-emerald-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                          {isBusy ? "Please wait..." : "Complete"}
+                          {isBusy ? "Please wait..." : "Resolve"}
                         </button>
                       )}
                     </div>

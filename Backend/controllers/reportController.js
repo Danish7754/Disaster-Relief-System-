@@ -2,13 +2,62 @@ const Report = require("../models/Report");
 const NGO = require("../models/NGO");
 const setPriority = require("../utils/priorityLogic");
 
+const recalculateNgoMetrics = async (ngoId) => {
+    const totalTaken = await Report.countDocuments({
+        assignedNgo: ngoId,
+        status: { $in: ["in-progress", "resolved"] },
+    });
+
+    const resolvedCount = await Report.countDocuments({
+        assignedNgo: ngoId,
+        status: "resolved",
+    });
+
+    let avgResponseTime = 0;
+    const resolvedReports = await Report.find({
+        assignedNgo: ngoId,
+        status: "resolved",
+    }).select("createdAt updatedAt");
+
+    if (resolvedReports.length > 0) {
+        const totalHours = resolvedReports.reduce((sum, report) => {
+            const diffMs = new Date(report.updatedAt).getTime() - new Date(report.createdAt).getTime();
+            return sum + diffMs / (1000 * 60 * 60);
+        }, 0);
+        avgResponseTime = Number((totalHours / resolvedReports.length).toFixed(1));
+    }
+
+    const successRate = totalTaken > 0 ? Math.round((resolvedCount / totalTaken) * 100) : 0;
+
+    const efficiencyScore = totalTaken > 0 ? resolvedCount / totalTaken : 0;
+    const volumeBonus = Math.min(resolvedCount, 50) / 50;
+    const rating = totalTaken > 0
+        ? Number(Math.min(5, 2 + efficiencyScore * 2.5 + volumeBonus * 0.5).toFixed(1))
+        : 2.5;
+
+    await NGO.findByIdAndUpdate(ngoId, {
+        $set: {
+            "performanceMetrics.totalReportsHandled": resolvedCount,
+            "performanceMetrics.successRate": successRate,
+            "performanceMetrics.avgResponseTime": avgResponseTime,
+            rating,
+        },
+    });
+};
+
+const ensureReportState = (report, ngo) => {
+    if (!report.state || !String(report.state).trim()) {
+        report.state = ngo?.state || "Unknown";
+    }
+};
+
 
 //------------------------------------------------------------------------------------------------------------------
 
 // naya report create karne ke liye controller function
 const createReport = async (req, res) => {
     try {
-        const { title, description, category, location, urgency } = req.body;
+        const { title, description, category, location, state, urgency } = req.body;
         //  if (!location) {
         //     return res.status(400).json({ message: "Location is required" });
         // }
@@ -22,6 +71,7 @@ const createReport = async (req, res) => {
             location: {
                 city: location,
             },
+            state: state || req.user?.state || "",
             priority,
             createdBy: req.user.id // yeh user ID token se milegi jo authentication middleware se aayegi
         });
@@ -69,7 +119,7 @@ const getReportById = async (req, res) => {
 // report ko update karne ke liye controller function (user apne khud ke report ko update kar sakta hai)
 const updateReport = async (req, res) => {
     try {
-        const { title, description, location, priority } = req.body;
+        const { title, description, location, state, priority } = req.body;
         const report = await Report.findOne({ _id: req.params.id, createdBy: req.user.id }); // specific report fetch kar raha hai jo user ne banayi hai
         if (!report) {
             return res.status(404).json({ message: "Report not found" }); // agar report nahi milti toh 404 status code bhej raha hai
@@ -83,11 +133,26 @@ const updateReport = async (req, res) => {
                 message: "Report cannot be edited once assigned or in progress"
             });
         }
-        report.title = title;
-        report.description = description;
-        report.location = location;
-        report.priority = priority;
-        await report.save();
+        // update only with provided values, falling back to existing values or user defaults
+        report.title = title || report.title;
+        report.description = description || report.description;
+        report.location = { city: (location && String(location).trim()) || report.location?.city || req.user?.city || "" };
+        // ensure state is present: prefer provided state, then existing, then user's state
+        report.state = (state && String(state).trim()) || report.state || req.user?.state || "";
+        report.priority = priority || report.priority;
+
+        try {
+            await report.save();
+        } catch (saveErr) {
+            // surface validation errors clearly to the client
+            if (saveErr && saveErr.name === 'ValidationError') {
+                const firstKey = Object.keys(saveErr.errors || {})[0];
+                const message = firstKey ? saveErr.errors[firstKey].message : 'Validation failed';
+                return res.status(400).json({ message });
+            }
+            throw saveErr;
+        }
+
         res.status(200).json({ message: "Report updated successfully", report });
     }
     catch (err) {
@@ -186,8 +251,12 @@ const acceptNgoAssignedReport = async (req, res) => {
             });
         }
 
+        ensureReportState(report, ngo);
         report.status = "in-progress";
+        report.ngoAssignmentState = "accepted";
         await report.save();
+
+        await recalculateNgoMetrics(ngo._id);
 
         return res.status(200).json({
             message: "Report accepted successfully",
@@ -222,11 +291,65 @@ const completeNgoAssignedReport = async (req, res) => {
             });
         }
 
+        ensureReportState(report, ngo);
         report.status = "resolved";
         await report.save();
 
+        await recalculateNgoMetrics(ngo._id);
+
         return res.status(200).json({
             message: "Report marked as resolved",
+            report,
+        });
+    }
+    catch (err) {
+        return res.status(500).json({ message: "Server Error", error: err.message });
+    }
+};
+
+// NGO pending report reject kar sakta hai, report government ke paas wapas chali jayegi
+const rejectNgoAssignedReport = async (req, res) => {
+    try {
+        if (req.user.role !== "ngo") {
+            return res.status(403).json({ message: "Access denied. NGO role required" });
+        }
+
+        const ngo = await NGO.findOne({ createdBy: req.user.id });
+        if (!ngo) {
+            return res.status(404).json({ message: "NGO profile not found" });
+        }
+
+        const report = await Report.findOne({ _id: req.params.id, assignedNgo: ngo._id });
+        if (!report) {
+            return res.status(404).json({ message: "Assigned report not found" });
+        }
+
+        if (report.status !== "pending") {
+            return res.status(400).json({
+                message: "Only pending reports can be rejected",
+            });
+        }
+
+        ensureReportState(report, ngo);
+        report.assignedNgo = null;
+        report.status = "pending";
+        report.ngoAssignmentState = "unassigned";
+        report.rejectionHistory = report.rejectionHistory || [];
+        report.rejectionHistory.push({
+            rejectedBy: ngo._id,
+            rejectedAt: new Date()
+        });
+        await report.save();
+
+        ngo.assignedReports = (ngo.assignedReports || []).filter(
+            (reportId) => reportId.toString() !== report._id.toString()
+        );
+        await ngo.save();
+
+        await recalculateNgoMetrics(ngo._id);
+
+        return res.status(200).json({
+            message: "Report rejected successfully",
             report,
         });
     }
@@ -246,5 +369,6 @@ module.exports = {
     getAllReportsAuthorities,
     getNgoAssignedReports,
     acceptNgoAssignedReport,
+    rejectNgoAssignedReport,
     completeNgoAssignedReport,
 }; // yeh functions ko export kar raha hai taaki routes mein use kiya ja sake

@@ -1,7 +1,18 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import backgroundImage from "../../assets/disaster-relief-bg.png";
+import {
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  Lock,
+  Mail,
+  Sparkles,
+  UserRound,
+  BadgeCheck,
+  Globe2,
+  Layers3,
+} from "lucide-react";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -82,231 +93,204 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 ">
-      <div className="fixed inset-0 z-0 ">
-        <img
-          src={backgroundImage}
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
-      </div>
-      {/* Outer wrapper - transparent with slight glass effect */}
-      <div className="w-full max-w-6xl flex rounded-2xl overflow-hidden backdrop-blur-xsm bg-white/10 border border-white/20 shadow-sm ">
+    <div className="relative min-h-screen overflow-hidden bg-[#f7f9fc] text-slate-900">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_26%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.10),_transparent_24%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,0.12),_transparent_22%)]" />
 
-        {/* Left Section - Minimal Content */}
-        <div className="hidden lg:flex lg:w-1/2 relative">
-          {/* Blue Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-300/40 to-blue-100/30"></div>
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold tracking-[0.18em] text-slate-600 uppercase shadow-sm">
+            <Sparkles className="h-3.5 w-3.5 text-cyan-600" />
+            ReliefConnect
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              aria-label="Home"
+              className="inline-flex items-center gap-2 rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-cyan-700"
+            >
+              Home
+            </Link>
 
-          {/* Content - Vertically Centered */}
-          <div className="relative z-10 flex flex-col justify-center p-12 text-white w-full">
-            <div className="mb-8">
-              <div className="flex items-center space-x-3 mb-10">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
-                  <span className="text-2xl">🛡️</span>
-                </div>
-                <h1 className="text-3xl font-bold">ReliefConnect</h1>
-              </div>
-
-              <h2 className="text-4xl font-bold mb-3 leading-tight">
-                Welcome to<br />ReliefConnect
-              </h2>
-
-              <div className="w-16 h-1 bg-sky-400/80 mb-4"></div>
-
-              <p className="text-lg text-white/90">
-                Join us to aid in disaster relief efforts
-              </p>
-            </div>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-white px-4 py-2 text-sm font-semibold text-cyan-700 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-900"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              login
+            </Link>
           </div>
         </div>
 
-        {/* Right Section - Form with Glassmorphism */}
-        <div className="w-full lg:w-1/2">
-          <div className="h-full backdrop-blur-md bg-white/90 border-l border-white/30">
-            <div className="p-8 lg:p-10 h-full flex items-center justify-center">
+        <header className="mb-6 max-w-3xl">
+          <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+            Create your account and get started fast.
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+            A simpler sign-up experience for citizens and NGO users, with a brighter layout than the login screen.
+          </p>
+        </header>
 
-              <div className="w-full max-w-sm">
-                <div className="mb-6 text-center lg:text-left">
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    Create Account
-                  </h2>
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_70px_rgba(15,23,42,0.08)] sm:p-8">
+            {errors.name || errors.email || errors.password || errors.confirmPassword ? (
+              <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                Please fix the highlighted fields and try again.
+              </div>
+            ) : null}
 
-                  <p className="text-gray-900 text-sm mt-1">
-                    Join ReliefConnect to help and respond during emergencies
-                  </p>
-                </div>
-                {/* Mobile Header */}
-                <div className="lg:hidden mb-8 text-center">
-                  <div className="flex items-center justify-center space-x-3 mb-6">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                      <span className="text-white text-xl">🛡️</span>
-                    </div>
-                    <h1 className="text-2xl font-bold text-gray-800">ReliefConnect</h1>
-                  </div>
-                </div>
-
-                {/* Form Container */}
-                <div className="space-y-4">
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Full Name */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Full Name</label>
+                  <div className="relative">
+                    <UserRound className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="Full Name"
-                      className={`w-full px-4 py-2.5 border ${errors.name ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition-all bg-white/80 text-gray-800 placeholder-gray-500`}
+                      placeholder="Your full name"
+                      className={`w-full rounded-2xl border ${errors.name ? "border-rose-300" : "border-slate-200"} bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 placeholder:text-slate-400`}
                     />
-                    {errors.name && (
-                      <p className="text-sm text-red-600 -mt-1">{errors.name}</p>
-                    )}
+                  </div>
+                  {errors.name && <p className="mt-1 text-sm text-rose-600">{errors.name}</p>}
+                </div>
 
-                    {/* Email Address */}
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Email Address</label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="Email Address"
-                      className={`w-full px-4 py-2.5 border ${errors.email ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition-all bg-white/80 text-gray-800 placeholder-gray-500`}
+                      placeholder="name@example.com"
+                      className={`w-full rounded-2xl border ${errors.email ? "border-rose-300" : "border-slate-200"} bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 placeholder:text-slate-400`}
                     />
-                    {errors.email && (
-                      <p className="text-sm text-red-600 -mt-1">{errors.email}</p>
-                    )}
+                  </div>
+                  {errors.email && <p className="mt-1 text-sm text-rose-600">{errors.email}</p>}
+                </div>
 
-                    {/* Password */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       type="password"
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Password"
-                      className={`w-full px-4 py-2.5 border ${errors.password ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition-all bg-white/80 text-gray-800 placeholder-gray-500`}
+                      placeholder="Create password"
+                      className={`w-full rounded-2xl border ${errors.password ? "border-rose-300" : "border-slate-200"} bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 placeholder:text-slate-400`}
                     />
-                    {errors.password && (
-                      <p className="text-sm text-red-600 -mt-1">{errors.password}</p>
-                    )}
+                  </div>
+                  {errors.password && <p className="mt-1 text-sm text-rose-600">{errors.password}</p>}
+                </div>
 
-                    {/* Confirm Password */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Confirm Password</label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                       type="password"
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      placeholder="Confirm Password"
-                      className={`w-full px-4 py-2.5 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition-all bg-white/80 text-gray-800 placeholder-gray-500`}
+                      placeholder="Repeat password"
+                      className={`w-full rounded-2xl border ${errors.confirmPassword ? "border-rose-300" : "border-slate-200"} bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100 placeholder:text-slate-400`}
                     />
-                    {errors.confirmPassword && (
-                      <p className="text-sm text-red-600 -mt-1">{errors.confirmPassword}</p>
-                    )}
-
-                    {/* Role Dropdown */}
-                    <select
-                      name="role"
-                      value={formData.role}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition-all bg-white/10 text-gray-800 appearance-none cursor-pointer"
-                    >
-                      <option value="citizen">Citizen</option>
-                      <option value="ngo">NGO</option>
-                    </select>
-
-                    {/* Terms & Conditions */}
-                    {/* <div className="pt-1">
-                  <label className="flex items-start space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="agreeTerms"
-                      checked={formData.agreeTerms}
-                      onChange={handleChange}
-                      className="mt-0.5 w-4 h-4 text-sky-600 rounded focus:ring-sky-500 border-gray-300"
-                    />
-                    <div>
-                      <span className="text-gray-700 text-xs">
-                        I agree to the{" "}
-                        <Link to="/terms" className="text-sky-600 hover:text-sky-800 font-medium">
-                          Terms & Conditions
-                        </Link>
-                      </span>
-                      {errors.agreeTerms && (
-                        <p className="mt-0.5 text-xs text-red-600">{errors.agreeTerms}</p>
-                      )}
-                    </div>
-                  </label>
-                </div> */}
-
-                    {/* Sign Up Button */}
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white py-2.5 rounded-lg font-semibold hover:from-sky-600 hover:to-blue-700 focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow mt-2"
-                    >
-                      {loading ? (
-                        <div className="flex items-center justify-center">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          Signing Up...
-                        </div>
-                      ) : (
-                        "Sign Up"
-                      )}
-                    </button>
-
-                    {/* Divider */}
-                    <div className="relative my-4">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-3 bg-transparent text-gray-500">Or continue with</span>
-                      </div>
-                    </div>
-
-                    {/* Social Login Buttons */}
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        className="flex-1 flex items-center justify-center space-x-2 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50/80 transition-colors bg-white"
-                      >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                        </svg>
-                        <span className="text-gray-800 font-medium text-sm">Google</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="flex-1 flex items-center justify-center space-x-2 py-2.5 bg-[#1877F2] text-white rounded-lg hover:bg-[#166fe5] transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                        </svg>
-                        <span className="font-medium text-sm">Facebook</span>
-                      </button>
-                    </div>
-
-                    {/* Login Link */}
-                    <div className="text-center pt-2">
-                      <span className="text-gray-600 text-sm">
-                        Already have an account?{" "}
-                        <Link to="/login" className="text-sky-600 hover:text-sky-800 font-semibold">
-                          Log In
-                        </Link>
-                      </span>
-                    </div>
-                  </form>
+                  </div>
+                  {errors.confirmPassword && <p className="mt-1 text-sm text-rose-600">{errors.confirmPassword}</p>}
                 </div>
 
-                {/* Footer Note */}
-                <p className="text-center text-xs text-gray-500 mt-6">
-                  By signing up, you agree to our{" "}
-                  <Link to="/privacy" className="text-sky-600 hover:underline">Privacy Policy</Link>
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Account Type</label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-100"
+                  >
+                    <option value="citizen">Citizen</option>
+                    <option value="ngo">NGO</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-600 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cyan-600/20 transition hover:-translate-y-0.5 hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Signing up...
+                  </>
+                ) : (
+                  <>
+                    Create account
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+
+              <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-4 shadow-sm">
+                <p className="text-sm font-semibold text-slate-800">Already have an account?</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center gap-2 font-semibold text-cyan-700 transition hover:text-cyan-900"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Log in now
+                  </Link>
                 </p>
               </div>
+            </form>
+          </section>
+
+          <aside className="space-y-6">
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_70px_rgba(15,23,42,0.08)] sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">Why register here</p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
+                Built for quick access and less friction.
+              </h2>
+              <div className="mt-6 space-y-4">
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <BadgeCheck className="mt-0.5 h-5 w-5 text-emerald-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Simple onboarding</p>
+                    <p className="mt-1 text-sm text-slate-600">Create the account with only the details you need.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <Globe2 className="mt-0.5 h-5 w-5 text-cyan-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Designed for multiple roles</p>
+                    <p className="mt-1 text-sm text-slate-600">Citizen and NGO users can pick the correct route at signup.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <Layers3 className="mt-0.5 h-5 w-5 text-violet-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Different from login</p>
+                    <p className="mt-1 text-sm text-slate-600">This page uses a lighter, stacked layout with its own visual identity.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <div className="rounded-[2rem] border border-cyan-100 bg-cyan-50 p-6 shadow-sm sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-800">Tip</p>
+              <p className="mt-2 text-sm leading-6 text-cyan-900">
+                Keep your name, email, and role accurate so your dashboard and disaster response access are set correctly from the start.
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

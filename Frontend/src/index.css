@@ -21,3 +21,22 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.8s ease forwards;
 }
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-up {
+  animation: revealUp 0.7s ease-out both;
+}
+
+.reveal-up-delay {
+  animation: revealUp 0.9s ease-out both;
+}

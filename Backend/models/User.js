@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({  //Ye ek blueprint banata hai ki user d
     },
     role: {
         type: String,
-        enum: ["citizen", "ngo", "government"],
+        enum: ["citizen", "ngo", "government", "admin"], // role sirf in teeno values mein se ek ho sakta hai agrar koi aur value di gayi toh mogodb reject kar dega
         //enum ka matlab hai ki role sirf in teeno values mein se ek ho sakta hai agrar koi aur value di gayi toh mogodb reject kar dega
         default: "citizen",  // agar user role nahi deta toh default role "citizen" set kar dega
     },

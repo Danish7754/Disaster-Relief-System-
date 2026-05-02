@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 function ProtectedRoute({ children, role }) {
   const { user, token } = useAuth();
+  const allowedRoles = Array.isArray(role) ? role : [role];
 
   // 1️⃣ Agar user login hi nahi hai
   if (!token || !user) {
@@ -9,7 +10,7 @@ function ProtectedRoute({ children, role }) {
   }
 
   // 2️⃣ Agar role match nahi karta
-  if (role && user.role !== role) {
+  if (role && !allowedRoles.includes(user.role)) {
     return <Navigate to="/login" replace />;
   }
    

@@ -19,9 +19,14 @@ const reportSchema = new mongoose.Schema(
                 required: [true, "Please enter city"], // city dena compulsory hai
             },
         },
+        state: {
+            type: String,
+            trim: true,
+            required: [true, "Please enter state"],
+        },
         status: {
             type: String,
-            enum: ["pending", "in-progress", "resolved"], // status sirf in teeno values mein se ek ho sakta hai
+            enum: ["pending", "in-progress", "resolved" , "waiting"], // status sirf in teeno values mein se ek ho sakta hai
             default: "pending", // agar user status nahi deta toh default status "pending" set kar dega
         },
         category: {
@@ -43,12 +48,30 @@ const reportSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "NGO", // yeh reference hai NGO model ka jisse pata chalega ki yeh report kis NGO ko assign hui hai
         },
+        ngoAssignmentState: {
+            type: String,
+            enum: ["unassigned", "waiting", "accepted"],
+            default: "unassigned"
+        },
+        rejectionHistory: [{
+            rejectedBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "NGO"
+            },
+            rejectedAt: {
+                type: Date,
+                default: Date.now
+            }
+        }],
     },
     { timestamps: true } // yeh automatically createdAt aur updatedAt fields add kar dega har report document mein
 );
 reportSchema.pre("save", function(next) {
-  if (this.city && typeof this.city === "string") {
-    this.city = this.city.trim().toLowerCase(); // you can also do .toLowerCase() if you want case-insensitive storage
+    if (this.location?.city && typeof this.location.city === "string") {
+        this.location.city = this.location.city.trim();
+    }
+    if (this.state && typeof this.state === "string") {
+        this.state = this.state.trim();
   }
   next();
 });

@@ -3,6 +3,13 @@ import { useEffect, useState } from "react";
 import { getMyReports, updateReport } from "../../services/reportService";
 import { useAuth } from "../../context/AuthContext";
 
+const stateOptions = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
+];
+
 export default function EditReport() {
 
   const { id } = useParams();
@@ -15,6 +22,7 @@ export default function EditReport() {
     title: "",
     description: "",
     location: "",
+    state: "",
     priority: ""
   });
 
@@ -32,6 +40,7 @@ export default function EditReport() {
           title: report.title,
           description: report.description,
           location: report.location?.city,
+          state: report.state || "",
           priority: report.priority
         });
 
@@ -120,6 +129,18 @@ export default function EditReport() {
             placeholder="Location"
             className="border p-2 w-full"
           />
+
+          <select
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          >
+            <option value="">Select State</option>
+            {stateOptions.map((state) => (
+              <option key={state} value={state}>{state}</option>
+            ))}
+          </select>
 
           <select
             name="priority"

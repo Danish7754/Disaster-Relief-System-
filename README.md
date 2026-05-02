@@ -1,79 +1,148 @@
-# 🌍 Disaster Relief System
+# Disaster Relief System
 
-A full-stack MERN (MongoDB, Express, React, Node.js) application designed to help manage disaster situations by connecting citizens, NGOs, and government authorities efficiently.
+Disaster Relief System is a full-stack MERN application for coordinating disaster response between citizens, NGOs, government staff, and admins. Citizens can report incidents, NGOs can manage assigned requests, and government users can monitor, assign, and analyze relief activity from a central dashboard.
 
----
+## Features
 
-## 🚀 Features
+### Citizen
+- Register and log in securely
+- Report incidents with location and details
+- Track submitted reports
+- Edit profile information
 
-### 👤 Citizen
-- Report disasters with location 📍
-- View nearby help/resources
-- Real-time updates
-
-### 🏢 NGO
+### NGO
 - View assigned reports
-- Manage relief operations
-- Update status of requests
+- Manage NGO profile details
+- Review and update relief work status
 
-### 🏛 Government
-- Monitor all reports
-- Allocate tasks to NGOs
-- View analytics & insights
+### Government
+- View all reports with filters and pagination
+- Assign reports to NGOs manually or automatically
+- Review NGO workload and analytics
+- Monitor assignment status and progress
 
----
+### Admin
+- Access the admin dashboard
 
-## 🛠 Tech Stack
+### UI and App Experience
+- Responsive navigation and role-based layouts
+- Dark mode support across Citizen, NGO, and Government layouts
+- Persistent login state with profile fields retained after re-login
 
-- **Frontend:** React.js, Vite, Tailwind CSS  
-- **Backend:** Node.js, Express.js  
-- **Database:** MongoDB Atlas  
-- **Authentication:** JWT  
-- **Maps:** Leaflet / Google Maps API  
+## Tech Stack
 
----
+- **Frontend:** React, Vite, React Router, Tailwind CSS, Lucide React, Recharts
+- **Backend:** Node.js, Express.js, MongoDB, Mongoose
+- **Authentication:** JWT, bcryptjs
+- **API Client:** Axios
 
-## 📁 Project Structure
+## Project Structure
+
+```text
 Disaster-Relief-System/
-│── Backend/
-│── Frontend/
-│── .gitignore
-│── README.md
+├── Backend/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── utils/
+│   ├── package.json
+│   └── server.js
+├── Frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── Layouts/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── utils/
+│   ├── package.json
+│   └── vite.config.js
+└── README.md
+```
 
+## Getting Started
 
----
-
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone the repository
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/disaster-relief-system.git
-cd disaster-relief-system
+git clone https://github.com/Danish7754/Disaster-Relief-System-.git
+cd Disaster-Relief-System-
+```
 
+### 2. Configure the backend
+
+Create a `.env` file inside `Backend/`:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+```
+
+### 3. Install dependencies
+
+```bash
 cd Backend
 npm install
-npm start
 
-Setup Frontend
-cd Frontend
+cd ../Frontend
 npm install
+```
+
+### 4. Run the app
+
+Start the backend:
+
+```bash
+cd Backend
 npm run dev
+```
 
-🔐 Environment Variables
+Start the frontend in a separate terminal:
 
-Create a .env file in Backend:
-PORT=5000
-MONGO_URI=your_mongodb_connection
-JWT_SECRET=your_secret_key
+```bash
+cd Frontend
+npm run dev
+```
 
+## Available Scripts
 
-🚀 Future Improvements
-Real-time notifications 🔔
-AI-based disaster prediction 🤖
-Multi-language support 🌐
+### Backend
+- `npm start` - start the API server
+- `npm run dev` - start the API server with nodemon
 
+### Frontend
+- `npm run dev` - start Vite development server
+- `npm run build` - build the frontend for production
+- `npm run lint` - run ESLint
 
-👨‍💻 Author
+## Main Routes
+
+### Frontend
+- `/` - Home
+- `/login` - Login
+- `/register` - Register
+- `/citizen` - Citizen dashboard
+- `/ngo` - NGO dashboard
+- `/govt` - Government dashboard
+- `/admin/dashboard` - Admin dashboard
+
+### Backend API
+- `/api/auth`
+- `/api/reports`
+- `/api/ngos`
+- `/api/govt`
+- `/api/users`
+- `/api/admin`
+
+## Notes
+
+- The backend server runs on `PORT` from the `.env` file, defaulting to `5000`.
+- The frontend uses Vite and typically runs on `http://localhost:5173`.
+- MongoDB connection is configured in `Backend/server.js`.
+
+## Author
 
 Danish Iqbal

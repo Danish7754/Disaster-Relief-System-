@@ -45,7 +45,8 @@ export const updateReport = async (id, updatedData, token) => {
     ...updatedData,
     location: {
       city: updatedData.location
-    }
+    },
+    state: updatedData.state
   };
 
   const response = await axios.put(
@@ -73,7 +74,7 @@ export const getAuthorityReports = async (token) => {
 };
 
 export const getNgoAssignedReports = async (token) => {
-  const response = await axios.get(`http://localhost:5000/api/ngo/assigned`, {
+  const response = await axios.get(`http://localhost:5000/api/reports/ngo/assigned`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -84,7 +85,21 @@ export const getNgoAssignedReports = async (token) => {
 
 export const acceptNgoReport = async (reportId, token) => {
   const response = await axios.patch(
-    `http://localhost:5000/api/ngo/${reportId}/accept`,
+    `http://localhost:5000/api/reports/ngo/${reportId}/accept`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const rejectNgoReport = async (reportId, token) => {
+  const response = await axios.patch(
+    `http://localhost:5000/api/reports/ngo/${reportId}/reject`,
     {},
     {
       headers: {
@@ -98,7 +113,7 @@ export const acceptNgoReport = async (reportId, token) => {
 
 export const completeNgoReport = async (reportId, token) => {
   const response = await axios.patch(
-    `http://localhost:5000/api/ngo/${reportId}/complete`,
+    `http://localhost:5000/api/reports/ngo/${reportId}/complete`,
     {},
     {
       headers: {

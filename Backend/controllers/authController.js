@@ -54,14 +54,21 @@ const login = async (req, res) => {
         }
         // generate JWT token
         const token = jwt.sign(
-            { userId: existingUser._id, role: existingUser.role }, // payload mein userId aur role daal raha hai
+            { userId: existingUser._id, role: existingUser.role  }, // payload mein userId aur role daal raha hai
             process.env.JWT_SECRET, // secret key environment variable se le raha hai
             { expiresIn: "7d" } // token 7 din ke liye valid rahega
         );
         res.json({
             message: "Login successful",
             token,
-            user: { id: existingUser._id, name: existingUser.name, role: existingUser.role , email: existingUser.email} // success message, token aur user details bhej raha hai
+            user: {
+                id: existingUser._id,
+                name: existingUser.name,
+                role: existingUser.role,
+                email: existingUser.email,
+                phone: existingUser.phone,
+                city: existingUser.city
+            } // success message, token aur user details bhej raha hai
         }); // success message, token aur user details bhej raha hai
     }
     catch (error) {

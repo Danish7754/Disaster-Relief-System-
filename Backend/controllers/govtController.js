@@ -1,11 +1,78 @@
 const Report = require("../models/Report");
 const NGO = require("../models/NGO");
 
+// ✅ Centralized severity requirements (used by multiple functions)
+const SEVERITY_REQUIREMENTS = {
+  high: { volunteers: 10, vehicles: 1 },
+  medium: { volunteers: 5, vehicles: 0 },
+  low: { volunteers: 2, vehicles: 0 }
+};
+
+// ✅ Helper function to assign NGO to report (eliminates duplicate logic)
+const assignNgoToReport = async (report, ngo) => {
+  report.assignedNgo = ngo._id;
+  report.status = "pending";
+  report.ngoAssignmentState = "waiting";
+  await report.save();
+
+  ngo.assignedReports = ngo.assignedReports || [];
+  ngo.assignedReports.push(report._id);
+  await ngo.save();
+
+  return {
+    reportId: report._id,
+    title: report.title || "",
+    severity: report.severity,
+    assignedNGO: {
+      id: ngo._id,
+      name: ngo.name
+    }
+  };
+};
+
+// ✅ Helper function to find suitable NGO by state and capacity
+const findNgoByStateAndCapacity = async (state, requirements) => {
+  const ngoQuery = {
+    state: state,
+    "capacity.volunteers": { $gte: requirements.volunteers },
+    "capacity.vehicles": { $gte: requirements.vehicles }
+  };
+
+  const ngos = await NGO.find(ngoQuery);
+  if (!ngos || ngos.length === 0) return null;
+
+  // Sort by least workload
+  ngos.sort((a, b) => (a.assignedReports?.length || 0) - (b.assignedReports?.length || 0));
+  return ngos[0];
+};
+
+// ✅ Helper function for analytics aggregation (eliminates duplicate error handling)
+const performAggregation = async (req, res, model, pipeline, errorMessage) => {
+  try {
+    const stats = await model.aggregate(pipeline);
+    return res.status(200).json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: errorMessage,
+      error: error.message
+    });
+  }
+};
+
 const getAllReports = async (req, res) => {
   try {
     const { status, priority, page = 1, limit = 10 } = req.query; // query parameters se filters aur pagination values le raha hai
     //pagination woh technique hai jisse hum data ko chhote-chhote parts mein divide karte hain taaki zyada data ek saath na load ho aur performance better ho
     let query = {};
+
+    // If government user has a state assigned, restrict reports to that state
+    if (req.user?.state) {
+      query.state = req.user.state;
+    }
 
     if (status) {
       query.status = status;
@@ -60,42 +127,74 @@ const getAllNgos = async (req, res) => {
 };
 
 /**
- * POST /api/govt/reports/simple-allocate
- * - prefer NGOs in same city (report.city)
- * - fallback to least-loaded NGO overall
- * - keep status pending until NGO accepts request
- * - push report id into NGO.assignedReports
+ * POST /api/govt/reports/auto-allocate
+ * Flexible auto-allocation endpoint:
+ * - If reportId provided: allocate single report
+ * - If reportId not provided: bulk allocate all pending reports (sorted by severity)
  */
-const simpleAllocatePendingReports = async (req, res) => {
+const autoAllocateReports = async (req, res) => {
   try {
-    // 1️⃣ Fetch all pending reports
-    const pendingReports = await Report.find({ status: "pending" });
+    const { reportId } = req.body;
 
-    // 2️⃣ Severity priority order
+    // 🔄 Case 1: Single report auto-allocation
+    if (reportId) {
+      const report = await Report.findById(reportId);
+      if (!report) {
+        return res.status(404).json({ success: false, message: 'Report not found' });
+      }
+
+      if (report.assignedNgo) {
+        return res.status(400).json({ success: false, message: 'Report already assigned' });
+      }
+
+      if (report.status !== 'pending') {
+        return res.status(400).json({ success: false, message: 'Report is not pending and cannot be auto-assigned' });
+      }
+
+      const state = (report.state || '').trim();
+      if (!state) {
+        return res.status(400).json({ success: false, message: 'Report state unknown; please assign manually' });
+      }
+
+      const requirements = SEVERITY_REQUIREMENTS[report.severity] || { volunteers: 0, vehicles: 0 };
+      const assignedNGO = await findNgoByStateAndCapacity(state, requirements);
+
+      if (!assignedNGO) {
+        return res.status(200).json({ success: false, message: 'No NGO found in this state, please assign manually' });
+      }
+
+      await assignNgoToReport(report, assignedNGO);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Report auto-assigned to NGO',
+        data: {
+          reportId: report._id,
+          ngo: { id: assignedNGO._id, name: assignedNGO.name }
+        }
+      });
+    }
+
+    // 📦 Case 2: Bulk allocation of all pending reports
+    const pendingQuery = { status: "pending" };
+    if (req.user?.state) {
+      pendingQuery.state = req.user.state;
+    }
+    const pendingReports = await Report.find(pendingQuery);
+
+    // Sort by severity (high → low)
     const severityOrder = { high: 1, medium: 2, low: 3 };
-
-    // sort reports by severity (high → low)
     pendingReports.sort((a, b) => {
       return (severityOrder[a.severity] || 4) - (severityOrder[b.severity] || 4);
     });
 
-    // 3️⃣ Capacity rules based on severity
-    const severityRequirements = {
-      high: { volunteers: 10, vehicles: 1 },
-      medium: { volunteers: 5, vehicles: 0 },
-      low: { volunteers: 2, vehicles: 0 }
-    };
-
-    // 4️⃣ Summary object
     const summary = {
       total: pendingReports.length,
       allocated: [],
       skipped: []
     };
 
-    // 5️⃣ Process each report
     for (const report of pendingReports) {
-      // skip if already assigned (safety)
       if (report.assignedNgo) {
         summary.skipped.push({
           reportId: report._id,
@@ -104,84 +203,38 @@ const simpleAllocatePendingReports = async (req, res) => {
         continue;
       }
 
-      const city = (report.city || "").trim();
-      const requirements =
-        severityRequirements[report.severity] || { volunteers: 0, vehicles: 0 };
+      const state = (report.state || "").trim();
+      const requirements = SEVERITY_REQUIREMENTS[report.severity] || { volunteers: 0, vehicles: 0 };
 
-      let assignedNGO = null;
-
-      // 6️⃣ Try NGOs in same city with sufficient capacity
-      if (city) {
-        const ngosInCity = await NGO.find({
-          location: { $in: [new RegExp(`^${city}$`, "i")] },
-          "capacity.volunteers": { $gte: requirements.volunteers },
-          "capacity.vehicles": { $gte: requirements.vehicles }
+      if (!state) {
+        summary.skipped.push({
+          reportId: report._id,
+          reason: "no_state"
         });
-
-        if (ngosInCity.length > 0) {
-          ngosInCity.sort(
-            (a, b) =>
-              (a.assignedReports?.length || 0) -
-              (b.assignedReports?.length || 0)
-          );
-          assignedNGO = ngosInCity[0];
-        }
+        continue;
       }
 
-      // 7️⃣ Fallback: any NGO with sufficient capacity
+      const assignedNGO = await findNgoByStateAndCapacity(state, requirements);
+
       if (!assignedNGO) {
-        const allNgos = await NGO.find({
-          "capacity.volunteers": { $gte: requirements.volunteers },
-          "capacity.vehicles": { $gte: requirements.vehicles }
+        summary.skipped.push({
+          reportId: report._id,
+          reason: "no_ngo_in_state"
         });
-
-        if (!allNgos || allNgos.length === 0) {
-          summary.skipped.push({
-            reportId: report._id,
-            reason: "insufficient_capacity"
-          });
-          continue;
-        }
-
-        allNgos.sort(
-          (a, b) =>
-            (a.assignedReports?.length || 0) -
-            (b.assignedReports?.length || 0)
-        );
-
-        assignedNGO = allNgos[0];
+        continue;
       }
 
-      // 8️⃣ Assign NGO & keep request pending until NGO accepts
-      report.assignedNgo = assignedNGO._id;
-      report.status = "pending";
-      await report.save();
-
-      // 9️⃣ Update NGO side
-      assignedNGO.assignedReports = assignedNGO.assignedReports || [];
-      assignedNGO.assignedReports.push(report._id);
-      await assignedNGO.save();
-
-      // 🔟 Update summary
-      summary.allocated.push({
-        reportId: report._id,
-        title: report.title || "",
-        severity: report.severity,
-        assignedNGO: {
-          id: assignedNGO._id,
-          name: assignedNGO.name
-        }
-      });
+      const assignmentResult = await assignNgoToReport(report, assignedNGO);
+      summary.allocated.push(assignmentResult);
     }
 
-    // 1️⃣1️⃣ Final response
     return res.status(200).json({
       success: true,
-      message: "Automatic allocation completed successfully",
+      message: "Auto-allocation completed successfully",
       summary
     });
   } catch (error) {
-    console.error("Auto allocation error:", error);
+    console.error("Auto-allocation error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -229,15 +282,8 @@ const manualAssignReport = async (req, res) => {
       });
     }
 
-    // 5️⃣ Capacity rules (same as auto logic)
-    const severityRequirements = {
-      high: { volunteers: 10, vehicles: 1 },
-      medium: { volunteers: 5, vehicles: 0 },
-      low: { volunteers: 2, vehicles: 0 }
-    };
-
-    const requirements =
-      severityRequirements[report.severity] || { volunteers: 0, vehicles: 0 };
+    // 5️⃣ Get requirements using centralized constant
+    const requirements = SEVERITY_REQUIREMENTS[report.severity] || { volunteers: 0, vehicles: 0 };
 
     // 6️⃣ Capacity check
     if (
@@ -250,17 +296,10 @@ const manualAssignReport = async (req, res) => {
       });
     }
 
-    // 7️⃣ Assign NGO to report and keep status pending for NGO acceptance
-    report.assignedNgo = ngo._id;
-    report.status = "pending";
-    await report.save();
+    // 7️⃣ Assign NGO to report
+    await assignNgoToReport(report, ngo);
 
-    // 8️⃣ Update NGO assigned reports
-    ngo.assignedReports = ngo.assignedReports || [];
-    ngo.assignedReports.push(report._id);
-    await ngo.save();
-
-    // 9️⃣ Success response
+    // 8️⃣ Success response
     return res.status(200).json({
       success: true,
       message: "Report manually assigned successfully",
@@ -283,6 +322,7 @@ const manualAssignReport = async (req, res) => {
 };
 
 
+// ✅ Helper function for analytics aggregation (eliminates duplicate error handling)
 // dashboard ke liye overview analytics data provide karne wala controller function
 const getOverviewAnalytics = async (req, res) => {
   try {
@@ -313,53 +353,29 @@ const getOverviewAnalytics = async (req, res) => {
 
 // status wise reports count provide karne wala controller function
 const getStatusAnalytics = async (req, res) => {
-  try {
-    const stats = await Report.aggregate([
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 }
-        }
+  const pipeline = [
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 }
       }
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Error fetching status analytics",
-      error: error.message
-    });
-  }
+    }
+  ];
+  return performAggregation(req, res, Report, pipeline, "Error fetching status analytics");
 };
 
 
 // severity wise reports count provide karne wala controller function
 const getSeverityAnalytics = async (req, res) => {
-  try {
-    const stats = await Report.aggregate([
-      {
-        $group: {
-          _id: "$severity",
-          count: { $sum: 1 }
-        }
+  const pipeline = [
+    {
+      $group: {
+        _id: "$priority",
+        count: { $sum: 1 }
       }
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Error fetching severity analytics",
-      error: error.message
-    });
-  }
+    }
+  ];
+  return performAggregation(req, res, Report, pipeline, "Error fetching severity analytics");
 };
 
 // NGO workload analytics provide karne wala controller function
@@ -392,11 +408,11 @@ const getNgoWorkloadAnalytics = async (req, res) => {
 
 module.exports = {
   getAllReports,
-  simpleAllocatePendingReports,
   getAllNgos,
   manualAssignReport,
+  autoAllocateReports,
   getOverviewAnalytics,
   getStatusAnalytics,
   getSeverityAnalytics,
-  getNgoWorkloadAnalytics
+  getNgoWorkloadAnalytics,
 };

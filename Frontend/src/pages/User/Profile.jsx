@@ -3,7 +3,7 @@ import { useState } from "react";
 import { updateProfile } from "../../services/userService";
 
 export default function Profile() {
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
 
@@ -23,7 +23,10 @@ export default function Profile() {
 
   const handleSubmit = async () => {
     try {
-      await updateProfile(formData, token);
+      const res = await updateProfile(formData, token);
+      // backend returns { message, user }
+      const updatedUser = res?.user || res;
+      if (updatedUser) updateUser(updatedUser);
       setMessage({ text: "Profile updated successfully", type: "success" });
       setTimeout(() => setMessage({ text: "", type: "" }), 3000);
       setIsEditing(false);

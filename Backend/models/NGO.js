@@ -6,14 +6,18 @@ const ngoSchema = new mongoose.Schema({
         required: [true, "Please enter NGO name"], // NGO name dena compulsory hai
     },
     location: {
-        type: [String], // NGO multiple cities mein operate kar sakta hai
+        type: [String + ", "], // NGO multiple cities mein operate kar sakta hai and cities ko comma se separate karke dena hoga
         required: [true, "Please enter regions served by the NGO"], // region dena compulsory hai
     },
     contactInfo: {
         email: String,
         phone: String,
         website: String,
-        address: String,
+      address: String,
+    },
+    state: {
+      type: String,
+      default: ""
     },
     category: {
         type: String,
@@ -56,7 +60,7 @@ const ngoSchema = new mongoose.Schema({
   },
     createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // yeh reference hai User model ka jisse pata chalega ki yeh NGO kis user ne banaya hai
+    ref: "UserData", // yeh reference hai User model ka jisse pata chalega ki yeh NGO kis user ne banaya hai
   },
 },
 { timestamps: true } // yeh automatically createdAt aur updatedAt fields add kar dega har NGO document mein
