@@ -277,8 +277,8 @@ export default function Register() {
                 <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <Layers3 className="mt-0.5 h-5 w-5 text-violet-600" />
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">Different from login</p>
-                    <p className="mt-1 text-sm text-slate-600">This page uses a lighter, stacked layout with its own visual identity.</p>
+                    <p className="text-sm font-semibold text-slate-900">Built for disaster response</p>
+                    <p className="mt-1 text-sm text-slate-600">Create a role-based account so you can report incidents, track updates, and coordinate relief faster.</p>
                   </div>
                 </div>
               </div>

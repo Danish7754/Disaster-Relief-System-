@@ -124,6 +124,9 @@ export default function ReportIncident() {
                   <option value="fire">Fire</option>
                   <option value="earthquake">Earthquake</option>
                   <option value="medical">Medical Emergency</option>
+                  <option value="road-accident">Road Accident</option>
+                  <option value="heavy-rain">Heavy Rain</option>
+                  <option value="electricity">Electricity Problem</option>
                   <option value="other">Other</option>
                 </select>
               </div>

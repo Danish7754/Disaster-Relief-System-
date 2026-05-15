@@ -12,6 +12,8 @@ export default function MyReports() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const reportsPerPage = 5;
 
   const fetchReports = async () => {
     setIsLoading(true);
@@ -60,6 +62,20 @@ export default function MyReports() {
       resolved: countByStatus.resolved || 0,
     };
   }, [reports]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredReports.length / reportsPerPage));
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  const visibleReports = useMemo(() => {
+    const startIndex = (currentPage - 1) * reportsPerPage;
+    return filteredReports.slice(startIndex, startIndex + reportsPerPage);
+  }, [currentPage, filteredReports]);
+
+  const showingStart = filteredReports.length === 0 ? 0 : (currentPage - 1) * reportsPerPage + 1;
+  const showingEnd = Math.min(currentPage * reportsPerPage, filteredReports.length);
 
   const handleDelete = async (id) => {
     const shouldDelete = window.confirm("Delete this report permanently?");
@@ -198,8 +214,8 @@ export default function MyReports() {
                   </thead>
 
                   <tbody className="divide-y divide-slate-100">
-                    {filteredReports.length > 0 ? (
-                      filteredReports.map((report) => (
+                    {visibleReports.length > 0 ? (
+                      visibleReports.map((report) => (
                         <tr key={report._id} className="hover:bg-slate-50 transition-colors duration-150">
                           <td className="py-4 px-6">
                             <div className="font-medium text-slate-800">{report.title}</div>
@@ -257,8 +273,8 @@ export default function MyReports() {
             </div>
 
             <div className="grid lg:hidden gap-4">
-              {filteredReports.length > 0 ? (
-                filteredReports.map((report) => (
+              {visibleReports.length > 0 ? (
+                visibleReports.map((report) => (
                   <article
                     key={report._id}
                     className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
@@ -312,6 +328,36 @@ export default function MyReports() {
                   <p className="text-slate-400 text-sm mt-1">Try adjusting your search or filter</p>
                 </div>
               )}
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 shadow-sm">
+              <p className="text-sm text-slate-600">
+                Showing {showingStart} to {showingEnd} of {filteredReports.length} reports
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700">
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </>
         )}

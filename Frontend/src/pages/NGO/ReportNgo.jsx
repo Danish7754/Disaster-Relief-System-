@@ -14,6 +14,9 @@ export default function ReportNgo() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const reportsPerPage = 5;
 
   const fetchAssignedReports = async () => {
     if (!token) {
@@ -39,6 +42,12 @@ export default function ReportNgo() {
     fetchAssignedReports();
   }, [token]);
 
+  const totalPages = Math.max(1, Math.ceil(reports.length / reportsPerPage));
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
   const stats = useMemo(() => { 
     const pending = reports.filter((report) => report.status === "pending").length;
     const inProgress = reports.filter((report) => report.status === "in-progress").length;
@@ -52,11 +61,28 @@ export default function ReportNgo() {
     };
   }, [reports]);
 
+  const visibleReports = useMemo(() => {
+    const startIndex = (currentPage - 1) * reportsPerPage;
+    return reports.slice(startIndex, startIndex + reportsPerPage);
+  }, [currentPage, reports]);
+
+  const showingStart = reports.length === 0 ? 0 : (currentPage - 1) * reportsPerPage + 1;
+  const showingEnd = Math.min(currentPage * reportsPerPage, reports.length);
+
   const formatDate = (dateValue) =>
     new Date(dateValue).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
+    });
+
+  const formatDateTime = (dateValue) =>
+    new Date(dateValue).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
   const getStatusBadge = (status) => {
@@ -108,6 +134,14 @@ export default function ReportNgo() {
     }
   };
 
+  const openDetails = (report) => {
+    setSelectedReport(report);
+  };
+
+  const closeDetails = () => {
+    setSelectedReport(null);
+  };
+
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
@@ -155,77 +189,176 @@ export default function ReportNgo() {
         </div>
 
         {!loading && reports.length > 0 ? (
-          <div className="divide-y divide-slate-100">
-            {reports.map((report) => {
-              const isBusy = actionLoadingId === report._id;
-              const statusLabel =
-                report.status === "resolved"
-                  ? "Resolved"
-                  : report.status === "in-progress"
-                    ? "In Progress"
-                    : "Pending";
-              return (
-                <article key={report._id} className="px-5 sm:px-6 py-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-slate-900">{report.title}</p>
-                      <p className="text-sm text-slate-500 mt-0.5">
-                        {report.location?.city || "N/A"} • {formatDate(report.createdAt)}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        By: {report.createdBy?.name || "Unknown User"}
-                      </p>
-                    </div>
+          <>
+            <div className="divide-y divide-slate-100">
+              {visibleReports.map((report) => {
+                const isBusy = actionLoadingId === report._id;
+                const statusLabel =
+                  report.status === "resolved"
+                    ? "Resolved"
+                    : report.status === "in-progress"
+                      ? "In Progress"
+                      : "Pending";
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`px-2.5 py-1 text-xs border rounded-full font-semibold ${getPriorityBadge(report.priority)}`}>
-                        {report.priority || "medium"}
-                      </span>
-                      <span className={`px-2.5 py-1 text-xs border rounded-full font-semibold ${getStatusBadge(report.status)}`}>
-                        {statusLabel}
-                      </span>
+                return (
+                  <article key={report._id} className="px-5 sm:px-6 py-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-900">{report.title}</p>
+                        <p className="text-sm text-slate-500 mt-0.5">
+                          {report.location?.city || "N/A"} • {formatDate(report.createdAt)}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          By: {report.createdBy?.name || "Unknown User"}
+                        </p>
+                      </div>
 
-                      {report.status === "pending" && (
-                        <>
-                          <button
-                            onClick={() => handleAccept(report._id)}
-                            disabled={isBusy}
-                            className="rounded-lg bg-sky-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            {isBusy ? "Please wait..." : "Accept"}
-                          </button>
-
-                          <button
-                            onClick={() => handleReject(report._id)}
-                            disabled={isBusy}
-                            className="rounded-lg bg-rose-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            {isBusy ? "Please wait..." : "Reject"}
-                          </button>
-                        </>
-                      )}
-
-                      {report.status === "in-progress" && (
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
-                          onClick={() => handleComplete(report._id)}
-                          disabled={isBusy}
-                          className="rounded-lg bg-emerald-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                          onClick={() => openDetails(report)}
+                          className="rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold px-3 py-1.5 hover:bg-slate-50"
                         >
-                          {isBusy ? "Please wait..." : "Resolve"}
+                          View
                         </button>
-                      )}
+
+                        <span className={`px-2.5 py-1 text-xs border rounded-full font-semibold ${getPriorityBadge(report.priority)}`}>
+                          {report.priority || "medium"}
+                        </span>
+                        <span className={`px-2.5 py-1 text-xs border rounded-full font-semibold ${getStatusBadge(report.status)}`}>
+                          {statusLabel}
+                        </span>
+
+                        {report.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() => handleAccept(report._id)}
+                              disabled={isBusy}
+                              className="rounded-lg bg-sky-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {isBusy ? "Please wait..." : "Accept"}
+                            </button>
+
+                            <button
+                              onClick={() => handleReject(report._id)}
+                              disabled={isBusy}
+                              className="rounded-lg bg-rose-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {isBusy ? "Please wait..." : "Reject"}
+                            </button>
+                          </>
+                        )}
+
+                        {report.status === "in-progress" && (
+                          <button
+                            onClick={() => handleComplete(report._id)}
+                            disabled={isBusy}
+                            className="rounded-lg bg-emerald-600 text-white text-sm font-semibold px-3 py-1.5 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {isBusy ? "Please wait..." : "Resolve"}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <p className="text-sm text-slate-600">
+                Showing {showingStart} to {showingEnd} of {reports.length} reports
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700">
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </>
         ) : (
           <div className="px-5 sm:px-6 py-12 text-center text-slate-500">
             {loading ? "Loading assigned reports..." : "No assigned reports for your NGO."}
           </div>
         )}
       </section>
+
+      {selectedReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between border-b border-slate-200 px-6 py-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 font-semibold">Report Details</p>
+                <h3 className="mt-1 text-xl font-semibold text-slate-900">{selectedReport.title || "Untitled report"}</h3>
+              </div>
+              <button
+                onClick={closeDetails}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Description</p>
+                <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{selectedReport.description || "No description provided."}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Reporter Name</p>
+                <p className="mt-2 text-sm font-medium text-slate-900">{selectedReport.createdBy?.name || "Unknown User"}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Phone Number</p>
+                <p className="mt-2 text-sm font-medium text-slate-900">{selectedReport.createdBy?.phone || "N/A"}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Location</p>
+                <p className="mt-2 text-sm font-medium text-slate-900">
+                  {selectedReport.location?.city || "N/A"}
+                  {selectedReport.state ? `, ${selectedReport.state}` : ""}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Reported On</p>
+                <p className="mt-2 text-sm font-medium text-slate-900">{formatDateTime(selectedReport.createdAt)}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Priority</p>
+                <p className="mt-2 text-sm font-medium text-slate-900 capitalize">{selectedReport.priority || "N/A"}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Status</p>
+                <p className="mt-2 text-sm font-medium text-slate-900 capitalize">{selectedReport.status || "N/A"}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

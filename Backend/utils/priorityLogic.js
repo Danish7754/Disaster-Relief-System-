@@ -8,7 +8,7 @@ const setPriority = (catogory,urgency,description) => {
   if( catogory && highRiskCategories.includes(catogory.toLowerCase())) return "high";
 
   // agr category me medium risk h road accident, power outage , water shortage, heavy rain,landslide,electricity 
-  const mediumRiskCategories = ["road accident", "power outage", "water shortage", "heavy rain","landslide","electricity"];
+  const mediumRiskCategories = ["road accident", "power outage", "water shortage", "heavy rain","landslide","electricity","medical","other"];
   if( catogory && mediumRiskCategories.includes(catogory.toLowerCase())) return "medium";
 
   //  Agar description mein urgent word hai toh Critical priority

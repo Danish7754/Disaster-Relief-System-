@@ -36,7 +36,7 @@ const reportSchema = new mongoose.Schema(
         },
         priority: {
             type: String,
-            enum: ["low", "medium", "high", "critical"], // priority sirf in teeno values mein se ek ho sakta hai
+            enum: ["low", "medium", "high", "Critical"], // priority sirf in teeno values mein se ek ho sakta hai
             default: "medium", // agar user priority nahi deta toh default priority "medium" set kar dega   
         },
         createdBy: {

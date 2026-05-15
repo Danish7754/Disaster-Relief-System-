@@ -214,7 +214,7 @@ const getNgoAssignedReports = async (req, res) => {
         }
 
         const reports = await Report.find({ assignedNgo: ngo._id })
-            .populate("createdBy", "name email")
+            .populate("createdBy", "name email phone")
             .populate("assignedNgo", "name contactInfo.phone")
             .sort({ createdAt: -1 });
 
