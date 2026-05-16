@@ -9,6 +9,7 @@ import step2 from "../assets/step2.png";
 import step3 from "../assets/step3.png";
 import step4 from "../assets/step4.png";
 import homebg from "../assets/homebg.png";
+import { Link } from "react-router-dom";
 export default function Home() {
   return (
     <div className="bg-slate-100">
@@ -43,18 +44,18 @@ export default function Home() {
             </p>
 
             <div className="mt-9 flex flex-col sm:flex-row gap-4 sm:items-center">
-              <a
-                href="/register"
+              <Link
+                to="/register"
                 className="px-7 py-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg transition"
               >
                 Report an Emergency
-              </a>
-              <a
-                href="/login"
+              </Link>
+              <Link
+                to="/login"
                 className="px-7 py-3 rounded-lg border border-white/35 bg-white/10 hover:bg-white/15 text-white font-semibold transition"
               >
                 Access Response Portal
-              </a>
+              </Link>
             </div>
 
             <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl">
@@ -157,10 +158,10 @@ export default function Home() {
                 key={i}
                 className="group relative rounded-2xl border border-slate-200 bg-white/95 p-6 min-h-[250px] shadow-sm hover:shadow-xl transition duration-300 hover:-translate-y-1"
                 style={{
-                  backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.82)), url(${item.img})`,
+                  backgroundImage: `linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,255,255,0.82)),url(${item.img}) `,
                   backgroundSize: "cover",
                   backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right -35px bottom -25px",
+                  backgroundPosition: "right -2px bottom -20px",
                 }}
               >
                 <div className="w-10 h-10 rounded-lg bg-slate-900 text-white text-sm font-semibold flex items-center justify-center">
