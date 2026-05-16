@@ -1,4 +1,4 @@
-import axios from "axios";
+import { registerUser } from "../../services/authService";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -24,6 +24,7 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -70,25 +71,28 @@ export default function Register() {
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setSubmitError("");
       return;
     }
 
     try {
       setLoading(true);
+      setSubmitError("");
 
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        formData
-      );
-
-      console.log(response.data);
+      await registerUser(formData);
 
       setLoading(false);
       navigate("/login");
 
     } catch (error) {
       setLoading(false);
-      console.log(error.response?.data || error.message);
+      const backendMessage = error.response?.data?.message || error.message || "Registration failed";
+      if (/already exists/i.test(backendMessage)) {
+        setSubmitError("User Already Exists");
+        return;
+      }
+
+      setSubmitError(backendMessage);
     }
   };
 
@@ -132,6 +136,12 @@ export default function Register() {
 
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_70px_rgba(15,23,42,0.08)] sm:p-8">
+            {submitError ? (
+              <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {submitError}
+              </div>
+            ) : null}
+
             {errors.name || errors.email || errors.password || errors.confirmPassword ? (
               <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 Please fix the highlighted fields and try again.

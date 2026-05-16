@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/reports";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/reports`;
 
 export const createReport = async (reportData, token) => {
   const response = await axios.post(API_URL, reportData, {
@@ -14,7 +14,7 @@ export const createReport = async (reportData, token) => {
 
 export const getMyReports = async (token) => {
   const response = await axios.get(
-    "http://localhost:5000/api/reports/my-reports",
+    `${import.meta.env.VITE_API_URL}/api/reports/my-reports`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -28,7 +28,7 @@ export const getMyReports = async (token) => {
 export const deleteReport = async (id, token) => {
 
   const response = await axios.delete(
-    `http://localhost:5000/api/reports/${id}`,
+    `${import.meta.env.VITE_API_URL}/api/reports/${id}`,
     {
       headers: {
         Authorization: `Bearer ${token}`
@@ -50,7 +50,7 @@ export const updateReport = async (id, updatedData, token) => {
   };
 
   const response = await axios.put(
-    `http://localhost:5000/api/reports/${id}`,
+    `${import.meta.env.VITE_API_URL}/api/reports/${id}`,
     payload,
     {
       headers: {
@@ -64,7 +64,7 @@ export const updateReport = async (id, updatedData, token) => {
 };
 
 export const getAuthorityReports = async (token) => {
-  const response = await axios.get(`http://localhost:5000/api/reports/all`, {
+  const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/reports/all`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -74,7 +74,7 @@ export const getAuthorityReports = async (token) => {
 };
 
 export const getNgoAssignedReports = async (token) => {
-  const response = await axios.get(`http://localhost:5000/api/reports/ngo/assigned`, {
+  const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/reports/ngo/assigned`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -85,7 +85,7 @@ export const getNgoAssignedReports = async (token) => {
 
 export const acceptNgoReport = async (reportId, token) => {
   const response = await axios.patch(
-    `http://localhost:5000/api/reports/ngo/${reportId}/accept`,
+    `${import.meta.env.VITE_API_URL}/api/reports/ngo/${reportId}/accept`,
     {},
     {
       headers: {
@@ -99,7 +99,7 @@ export const acceptNgoReport = async (reportId, token) => {
 
 export const rejectNgoReport = async (reportId, token) => {
   const response = await axios.patch(
-    `http://localhost:5000/api/reports/ngo/${reportId}/reject`,
+    `${import.meta.env.VITE_API_URL}/api/reports/ngo/${reportId}/reject`,
     {},
     {
       headers: {
@@ -113,7 +113,7 @@ export const rejectNgoReport = async (reportId, token) => {
 
 export const completeNgoReport = async (reportId, token) => {
   const response = await axios.patch(
-    `http://localhost:5000/api/reports/ngo/${reportId}/complete`,
+    `${import.meta.env.VITE_API_URL}/api/reports/ngo/${reportId}/complete`,
     {},
     {
       headers: {
